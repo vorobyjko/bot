@@ -1,8 +1,12 @@
 const Bot = require("node-telegram-bot-api");
+const MongoRepository = require("./mongo-repository")
 
 const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo"
 
 const bot = new Bot(token, {polling: true});
+
+const mongoClient = new MongoRepository();
+mongoClient.insertRequest({'phone': '+380964545174'})
 
 bot.setMyCommands([
   {command: '/start', description: 'начало'},
