@@ -25,7 +25,7 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, "Welcome", {
     "reply_markup": {
       "keyboard": [
-        [{text: buttons['volunteer'], callback_data: 'need_volunteer'}],
+        //[{text: buttons['volunteer'], callback_data: 'need_volunteer'}],
         [{text: buttons['help'], callback_data: 'need_help'}],
         [{text: buttons['info'], callback_data: 'share_info'}],
       ]
