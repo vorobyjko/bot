@@ -2,8 +2,7 @@ const { MongoClient } = require("mongodb");
 
 class MongoRepository {
     constructor() {
-        this.connection = 'mongodb+srv://admin_volunteer:qULwOngNGT8BLjWm@volunteerprod.rlcb4.mongodb.net' +
-            '/VolunteerDb?retryWrites=true&w=majority';
+        this.connection = 'mongodb+srv://admin_volunteer:qULwOngNGT8BLjWm@volunteerprod.rlcb4.mongodb.net/VolunteerDb?retryWrites=true&w=majority';
         this.db = 'VolunteerDb';
         this.collection = 'requests';
         this.client = new MongoClient(this.connection);
