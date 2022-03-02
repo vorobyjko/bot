@@ -8,16 +8,6 @@ const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo";
 
 // const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
 
-async function handleInvalidOption(ctx) {
-  // await ctx.reply('Оберіть будь-ласка варіант зі спіску')
-  // return ctx.wizard.back();
-  // return ctx.wizard.back();
-  // ctx.wizard.cursor = 2
-  // ctx.wizard.back();
-  // ctx.wizard.back();
-  // console.log(ctx.wizard.steps[ctx.wizard.cursor]);
-  // return ctx.wizard.steps[2](ctx);
-}
 
 const superWizard = new Scenes.WizardScene(
   'super-wizard',
@@ -44,13 +34,17 @@ const stage = new Scenes.Stage([superWizard], {
 })
 
 const bot = new Telegraf(token)
+bot.use(session())
+bot.use(stage.middleware())
+
+bot.on('message', async (ctx) => {
+  console.log(123);
+})
 
 bot.action('ok', async (ctx) => {
   return await ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id)
 })
 
-bot.use(session())
-bot.use(stage.middleware())
 bot.launch()
 
 // Enable graceful stop

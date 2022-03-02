@@ -14,7 +14,7 @@ const createTemplate = (data) => {
 <b>USER:</b> ${data.user}
 <b>НОМЕР ТЕЛЕФОНУ:</b> ${data.phone}
 ${data.text ? 'ОПИС:' + data.text : ''}     
-`.trim()
+`
 }
 
 const sendPhone = async (ctx) => {
@@ -43,7 +43,14 @@ const handleType = (type, subtype) => {
   return res;
 }
 
+const handleInvalidOption = async (ctx) => {
+  await ctx.reply('Оберіть будь-ласка варіант зі спіску')
+  ctx.wizard.back();
+  return ctx.wizard.steps[ctx.wizard.cursor](ctx)
+}
+
 module.exports = {
   createTemplate,
-  sendPhone
+  sendPhone,
+  handleInvalidOption
 }
