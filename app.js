@@ -1,163 +1,199 @@
-const Bot = require("node-telegram-bot-api");
-const MongoRepository = require("./mongo-repository")
+const { Telegraf,Markup, Scenes ,session , Composer} = require('telegraf');
 
-const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo"
+// const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo"
+const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
 
-const bot = new Bot(token, {polling: true});
+function createTemplate(data) {
+  const date = new Date();
+  return `
+   ДАТА: ${date.getDate()}.${date.getMonth()}.${date.getFullYear()}
+   ТИП: ${data.type} / ${subtypeButtons[data.subtype]}
+   USER: ${data.user}
+   НОМЕР ТЕЛЕФОНУ: ${data.phone}
+   ${data.text ? 'ОПИС:' + data.text : ''}     
+  `
+}
 
-const mongoClient = new MongoRepository();
+async function sendPhone(ctx) {
+  return ctx.reply('Залиште Ваші контакти', {
+    reply_markup: {
+      keyboard: [
+        [
+          {
+            text: "📲 Залишити свої контакті",
+            request_contact: true,
+          },
+        ],
+      ],
+      one_time_keyboard: true,
+    },
+  })
+}
 
-bot.setMyCommands([
-  {command: '/start', description: 'начало'},
-])
 
 const buttons = {
-  volunteer: 'Мені треба волонтери (збір речей для військових, плетіння сіток, тощо)',
-  help: 'мені або близькій людині треба допомога (ліки, речі, інше)',
-  info: 'хочу поділитись важливою інформацією з УВС'
+  volunteer: '🙋 ‍Мені треба волонтери',
+  help: '❗️ Мені або близькій людині треба допомога',
+  info: '📢 Хочу поділитись важливою інформацією з УВС'
 }
 
-const firstKeyboard = {
-  reply_markup: JSON.stringify({
-    keyboard: [
-      [{text: buttons['volunteer'], callback_data: 'need_volunteer'}],
-      [{text: buttons['help'], callback_data: 'need_help'}],
-      [{text: buttons['info'], callback_data: 'share_info'}],
-    ]
-  })
+const buttonsNeedHelp = {
+  liki: '💊 лiки',
+  stuff: '🧦 речi',
+  food: '🥪 їжа/вода',
+  rest: '🛒 iнше',
 }
 
-bot.onText(/\/start/, async (msg) => {
-  await bot.sendMessage(msg.chat.id, "Welcome", firstKeyboard);
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Welcome", {
-    "reply_markup": {
-      "keyboard": [
-        //[{text: buttons['volunteer'], callback_data: 'need_volunteer'}],
-        [{text: buttons['help'], callback_data: 'need_help'}],
-        [{text: buttons['info'], callback_data: 'share_info'}],
-      ]
-    }
-  });
-});
+const buttonsNeedVolunteer = {
+  networks: '🕸 плетіння сіток',
+  stuff: '🧦 збір речей для військових',
+}
 
-  const state = {
-    step: 0,
-    data: null,
-  };
+const buttonsShareInfo = {
 
-  const needVolunteerOptions = {
-    "reply_markup": JSON.stringify({
-      "keyboard": [
-        [{text: 'збір речей для військових', callback_data: 'need_volunteer'}],
-        [{text: 'плетіння сіток', callback_data: 'need_help'}],
-        [{text: 'iнше', callback_data: 'share_info'}],
-        [{text: 'назад', callback_data: 'back'}]
-      ]
-    })
+}
+
+const subtypeButtons = {
+  ...buttonsNeedVolunteer,
+  ...buttonsShareInfo,
+  ...buttonsNeedHelp
+}
+
+const stepHandler = new Composer();
+stepHandler.action('volunteer', async (ctx) => {
+  await ctx.reply(
+    'Які волонтері потрібні?',
+    Markup.inlineKeyboard([
+      [Markup.button.callback(`${buttonsNeedVolunteer['networks']}`, 'networks')],
+      [Markup.button.callback(`${buttonsNeedVolunteer['stuff']}`, 'stuff')],
+    ])
+  )
+  ctx.wizard.state.type = 'ДОПОМОГА';
+  return ctx.wizard.next();
+})
+stepHandler.action('help', async (ctx) => {
+  await ctx.reply(
+    'Яка допомога потрібна?',
+    Markup.inlineKeyboard([
+      [Markup.button.callback(`${buttonsNeedHelp['liki']}`, 'liki')],
+      [Markup.button.callback(`${buttonsNeedHelp['food']}`, 'food')],
+      [Markup.button.callback(`${buttonsNeedHelp['stuff']}`, 'stuff')],
+      [Markup.button.callback(`${buttonsNeedHelp['rest']}`, 'rest')],
+      [Markup.button.callback(`back`, 'back')],
+    ])
+  )
+
+  ctx.wizard.state.type = 'ДОПОМОГА';
+  return ctx.wizard.next()
+})
+
+async function handleInvalidOption(ctx) {
+  // await ctx.reply('Оберіть будь-ласка варіант зі спіску')
+  // return ctx.wizard.back();
+  // console.log(ctx.wizard.steps);
+  // console.log(ctx.wizard.cursor);
+  // return ctx.wizard.back();
+  // ctx.wizard.cursor = 2
+  // ctx.wizard.back();
+  // ctx.wizard.back();
+  // console.log(ctx.wizard.steps[ctx.wizard.cursor]);
+  // return ctx.wizard.steps[2](ctx);
+}
+
+stepHandler.on('message', async (ctx) => {
+  if (!Object.values(buttons).includes(ctx.message.text)) {
+    return await handleInvalidOption(ctx);
+  }
+})
+
+const stepSubtype = new Composer();
+
+Object.keys(subtypeButtons).filter(key => key !== 'rest').forEach((key) => {
+  stepSubtype.action(key, async (ctx) => {
+    await sendPhone(ctx);
+    ctx.wizard.state.subtype = key;
+    return ctx.wizard.next()
+  })
+})
+
+stepSubtype.action('rest', async (ctx) => {
+  await ctx.reply('Будь ласка, опишіть, що саме вам потрібно ?')
+  ctx.wizard.state.subtype = 'rest';
+})
+
+stepSubtype.on('message', async (ctx) => {
+  if (!Object.values(subtypeButtons).includes(ctx.message.text)) {
+    await ctx.reply('Оберіть будь-ласка варіант зі спіску')
+    ctx.wizard.selectStep(1)
+    console.log(ctx.wizard.cursor);
+    return ctx.wizard.steps[ctx.wizard.cursor](ctx)
+    // return ctx.wizard.steps[ctx.wizard.cursor].handler(ctx);
+
   }
 
-  const buttonsNeedHelp = {
-    liki: 'лiки',
-    stuff: 'речi',
-    food: 'еда/вода',
-    rest: 'iнше',
-  }
+  ctx.wizard.state.text = ctx.message.text;
+  await sendPhone(ctx);
+  return ctx.wizard.next()
+})
 
-  const needHelpOptions = {
-    "reply_markup": {
-      "keyboard": [
-        [{text: buttonsNeedHelp['liki'], callback_data: buttonsNeedHelp['liki']}],
-        [{text: buttonsNeedHelp['food'], callback_data: 'need_help_food'}],
-        [{text: buttonsNeedHelp['stuff'], callback_data: 'need_help_stuff'}],
-        [{text: buttonsNeedHelp['rest'], callback_data: 'need_help_other'}],
-        [{text: 'назад', callback_data: '/start'}]
-      ]
-    }
-  }
-
-  const needHelpOptions1 = {
-    "reply_markup": {
-      "inline_keyboard": [
-        [{text: 'OK', callback_data: 'OK'}],
-      ]
-    }
-  }
-
-  let id;
+stepSubtype.action('back', async (ctx) => {
+  ctx.wizard.back();
+  return ctx.wizard.steps[ctx.wizard.cursor](ctx)
+})
 
 
-  bot.on('callback_query', (msg) => {
-    // console.log('onKO', msg);
+const needHelpOptions1 = Markup.inlineKeyboard([
+  [Markup.button.callback(`OK`, 'ok')],
+])
 
-    bot.deleteMessage(msg.message.chat.id, msg.message.message_id)
-    bot.sendMessage("@help_people_admin_done", msg.message.text)
-  })
+const stepContacts = new Composer();
+stepContacts.on('contact', async (ctx) => {
+  ctx.wizard.state.phone = ctx.message.contact.phone_number;
+  ctx.wizard.state.user = `${ctx.message.contact.first_name} ${ctx.update.contact.last_name}`;
 
-  /*bot.on("callback_query", async (msg) => {
-    console.log(msg);
+  await ctx.reply('Дякую')
 
-    // bot.sendContact(msg.chat.id)
-    // mongoClient.insertRequest({'phone': '+380964545174', name: `${msg.first_name} ${msg.last_name}`, id: msg.id, text: 'Потрибни лики', status: 'open'})
-  })*/
+  await ctx.telegram.sendMessage("@help_people_admin", createTemplate(ctx.wizard.state), needHelpOptions1)
+  return ctx.scene.leave();
+})
 
-  bot.on('message', (msg) => {
+const superWizard = new Scenes.WizardScene(
+  'super-wizard',
+  async (ctx) => {
+    await ctx.reply(
+      'МЕНЮ',
+      Markup.inlineKeyboard(
+        [
+          [Markup.button.callback(`${buttons['volunteer']}`, 'volunteer')],
+          [Markup.button.callback(`${buttons['help']}`, 'help')],
+          [Markup.button.callback(`${buttons['info']}`, 'info')],
+        ]
+      )
+    )
+    return ctx.wizard.next()
+  },
+  stepHandler,
+  stepSubtype,
+  stepContacts,
+)
 
-    state.step += 1;
+const bot = new Telegraf(token)
 
-    if (msg.text.includes(buttons['volunteer'])) {
-      return bot.sendMessage(msg.chat.id, "Що треба робити?", needVolunteerOptions)
-    }
+const stage = new Scenes.Stage([superWizard], {
+  default: 'super-wizard',
+})
 
-    if (msg.text.includes(buttons['help'])) {
-      return bot.sendMessage(msg.chat.id,"Яка допомога потрибна ?", needHelpOptions)
-    }
-
-    if (msg.text.includes(buttons['info'])) {
-      bot.sendMessage(msg.chat.id,"Про що хочете розповисти ?", needHelpOptions)
-    }
-
-    // console.log(msg);
-
-    if (msg.text.includes('назад')) {
-      return bot.sendMessage(msg.chat.id, '/start', firstKeyboard)
-    }
-  })
-
-  bot.on('message', (msg) => {
-
-    switch(msg.text) {
-      case buttonsNeedHelp['liki']:
-        id = msg.chat.id;
-
-        bot.sendMessage(msg.chat.id, 'Введите ФИО:')
-
-        // return bot.sendMessage("@help_people_admin","ТИП: Потрибна допомога - ЛИКИ ⛑\n Що потрибно: ьуыыфыв \nФИО \nМисто \nномер телефону", needHelpOptions1)
-    }
-  })
-
-  bot.onText('message', (msg) => {
-    console.log(msg);
-    if (msg.text === 'Введите ФИО:') {
-    }
-  })
-
-  bot.on('message', (msg) => {
-    if (state.step === 1) {
-      state.data = msg.text;
-    }
-  })
-});
+bot.action('ok', async (ctx) => {
+  return await ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id)
+})
 
 
+bot.use(session())
+bot.use(stage.middleware())
+bot.launch()
 
+// Enable graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
-
-// mongoClient.insertRequest({'phone': '+380964545174'})
-
-/*
-const data = {
-  phone: int,
-  personal_info: string
-  message: string
-}*/
+module.exports.bot = bot;
