@@ -4,10 +4,6 @@ const {step2} = require('./step2');
 const {step3} = require('./step3');
 const {buttons} = require('./buttons');
 
-const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo";
-
-// const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
-
 const superWizard = new Scenes.WizardScene(
   'super-wizard',
   async (ctx) => {
@@ -32,17 +28,10 @@ const stage = new Scenes.Stage([superWizard], {
   default: 'super-wizard',
 })
 
-const bot = new Telegraf(token)
-
-const options = {
-  parse_mode: "HTML", ...Markup.inlineKeyboard([
-    [Markup.button.callback(`OK`, 'ok')],
-  ])
-}
+const bot = new Telegraf(process.env.TOKEN)
 
 bot.action('ok', async (ctx) => {
   // const text = '✅ ВИКОНАНО\n' + ctx.update.callback_query.message.text;
-  // await ctx.tg.sendMessage(ctx.botInfo.id, 'asd')
   await ctx.tg.sendMessage("@help_people_admin_done", ctx.update.callback_query.message.text);
   await ctx.tg.sendMessage(ctx.from.id, '✅ Ваша заявка була успішно виконана!');
   return ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id);

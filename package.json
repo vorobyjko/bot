@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon app.js",
+    "dev": "nodemon -r dotenv/config app.js",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-lambda": "./node_modules/.bin/serverless offline -s dev"
@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.0.0",
     "mongodb": "^4.4.0",
     "node-telegram-bot-api": "^0.56.0",
     "nodemon": "^2.0.15",
