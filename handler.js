@@ -1,19 +1,14 @@
 'use strict';
+const { Telegraf } = require('telegraf')
 
 module.exports.webhook = async (event) => {
-    console.log(event);
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: 'Go Serverless v1.0! Your function executed successfully!',
-        input: event,
-      },
-      null,
-      2
-    ),
-  };
+    const body = JSON.parse(event.body);
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+    const bot = new Telegraf("5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE");
+    bot.hears('hi', ctx => ctx.reply('Hello from bot'));
+
+    console.log(body);
+    console.log('Request: ' + JSON.stringify(body));
+    await bot.handleUpdate(body);
+    return {statusCode: 200, body: ''};
 };

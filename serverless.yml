@@ -26,6 +26,9 @@ provider:
   region: eu-central-1
   stage: prod
 
+plugins:
+  - serverless-offline
+
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
@@ -61,7 +64,7 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  hello:
+  webhook:
     handler: handler.webhook
     events:
       - http:
