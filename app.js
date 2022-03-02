@@ -8,7 +8,6 @@ const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo";
 
 // const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
 
-
 const superWizard = new Scenes.WizardScene(
   'super-wizard',
   async (ctx) => {
@@ -34,16 +33,23 @@ const stage = new Scenes.Stage([superWizard], {
 })
 
 const bot = new Telegraf(token)
-bot.use(session())
-bot.use(stage.middleware())
 
-bot.on('message', async (ctx) => {
-  console.log(123);
-})
+const options = {
+  parse_mode: "HTML", ...Markup.inlineKeyboard([
+    [Markup.button.callback(`OK`, 'ok')],
+  ])
+}
 
 bot.action('ok', async (ctx) => {
-  return await ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id)
+  // const text = '✅ ВИКОНАНО\n' + ctx.update.callback_query.message.text;
+  // await ctx.tg.sendMessage(ctx.botInfo.id, 'asd')
+  await ctx.tg.sendMessage("@help_people_admin_done", ctx.update.callback_query.message.text);
+  await ctx.tg.sendMessage(ctx.from.id, '✅ Ваша заявка була успішно виконана!');
+  return ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id);
 })
+
+bot.use(session())
+bot.use(stage.middleware())
 
 bot.launch()
 

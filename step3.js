@@ -1,7 +1,7 @@
 const {Markup, Composer} = require("telegraf");
 const {createTemplate} = require("./utils")
 
-const needHelpOptions1 = {
+const options = {
   parse_mode: "HTML", ...Markup.inlineKeyboard([
     [Markup.button.callback(`OK`, 'ok')],
   ])
@@ -14,8 +14,8 @@ stepContacts.on('contact', async (ctx) => {
 
   await ctx.reply("✅ Заявка прійнята!\nНаші модератори обов'язково розглянуть її найбліжчім часом.\nСЛАВА УКРАЇНІ! 🇺🇦❤️")
 
-  await ctx.telegram.sendMessage("@help_people_admin", createTemplate(ctx.wizard.state), needHelpOptions1)
-  return ctx.scene.leave();
+  await ctx.scene.leave();
+  return ctx.telegram.sendMessage("@help_people_admin", createTemplate(ctx.wizard.state), options)
 })
 
 module.exports.step3 = stepContacts;

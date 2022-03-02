@@ -17,6 +17,10 @@ stepSubtype.action('rest', async (ctx) => {
   ctx.wizard.state.subtype = 'rest';
 })
 
+/*stepSubtype.command('start', async (ctx) => {
+
+})*/
+
 stepSubtype.on('message', async (ctx) => {
   console.log(ctx.wizard.state);
 
