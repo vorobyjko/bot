@@ -6,7 +6,7 @@ const {buttons} = require('./buttons');
 
 const token = "5274584599:AAGiuOIXiVb-e764T09biw03ByqrkXwckeo";
 
-// const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
+//const token = "5106440159:AAHpYkNKTzf48MXtu3q0Dnw46ts2NHhUJIE"
 
 async function handleInvalidOption(ctx) {
   // await ctx.reply('Оберіть будь-ласка варіант зі спіску')
@@ -42,8 +42,10 @@ const superWizard = new Scenes.WizardScene(
 const stage = new Scenes.Stage([superWizard], {
   default: 'super-wizard',
 })
-
 const bot = new Telegraf(token)
+// const bot = new Telegraf(token, {
+//     telegram: { webhookReply: false }
+// })
 
 bot.action('ok', async (ctx) => {
   return await ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id)
