@@ -28,7 +28,11 @@ const stage = new Scenes.Stage([superWizard], {
   default: 'super-wizard',
 })
 
-const bot = new Telegraf(process.env.TOKEN)
+// const bot = new Telegraf(process.env.TOKEN)
+//const bot = new Telegraf(process.env.TOKEN)
+const bot = new Telegraf(process.env.TOKEN, {
+    telegram: { webhookReply: false }
+})
 
 bot.action('ok', async (ctx) => {
   // const text = '✅ ВИКОНАНО\n' + ctx.update.callback_query.message.text;
@@ -40,7 +44,7 @@ bot.action('ok', async (ctx) => {
 bot.use(session())
 bot.use(stage.middleware())
 
-bot.launch()
+//bot.launch()
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'))
