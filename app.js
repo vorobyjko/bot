@@ -28,23 +28,23 @@ const stage = new Scenes.Stage([superWizard], {
   default: 'super-wizard',
 })
 
-// const bot = new Telegraf(process.env.TOKEN)
-//const bot = new Telegraf(process.env.TOKEN)
 const bot = new Telegraf(process.env.TOKEN, {
-    telegram: { webhookReply: false }
+  telegram: { webhookReply: false }
 })
-
-bot.action('ok', async (ctx) => {
-  // const text = '✅ ВИКОНАНО\n' + ctx.update.callback_query.message.text;
-  await ctx.tg.sendMessage("@help_people_admin_done", ctx.update.callback_query.message.text);
-  await ctx.tg.sendMessage(ctx.from.id, '✅ Ваша заявка була успішно виконана!');
-  return ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id);
+bot.action(/ok_/, async (ctx) => {
+  try {
+    await ctx.tg.sendMessage("@help_people_admin_done", ctx.update.callback_query.message.text);
+    await ctx.tg.sendMessage(ctx.update.callback_query.data.split('_')[1], '✅ Ваша заявка була успішно виконана!');
+    return await ctx.tg.deleteMessage(ctx.update.callback_query.message.chat.id, ctx.update.callback_query.message.message_id);
+  } catch(error) {
+    console.log(error)
+  }
 })
 
 bot.use(session())
 bot.use(stage.middleware())
 
-//bot.launch()
+// bot.launch()
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'))
